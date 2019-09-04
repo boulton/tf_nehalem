@@ -1,8 +1,19 @@
 
-FROM python:3.7-alpine
+FROM python:3.7-buster
 COPY tensorflow-2.0.0b1-cp37-cp37m-linux_x86_64.whl ./
-RUN apk add --no-cache --update-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted hdf5-dev
-RUN apk add --no-cache --virtual .build-deps build-base g++ musl-dev python3-dev \
+RUN apt-get update 
+RUN apt-get install -y --no-install-recommends \
+				build-essential  libhdf5-dev \
+				 g++ python3-dev \
  && pip install cython \
+RUN git clone git://sourceware.org/git/glibc.git \
+ && cd glibc \
+ && git checkout master \
+ && ./configure \
+ && ./make \
+ && ./make install \
  && pip install ./tensorflow-2.0.0b1-cp37-cp37m-linux_x86_64.whl \
- && apk del .build-deps
+ && apt-get clean \
+ && rm -rf /tmp/* /var/tmp/*
+
+RUN LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/glibc/lib
